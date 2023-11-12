@@ -43,10 +43,19 @@ void broadcastMessage(int senderSocketFD, char *message)
         if (clientSockets[i] > 0 && clientSockets[i] != senderSocketFD)
         {
             printf("Sending message to %d\n", clientSockets[i]);
-            send(clientSockets[i], message, strlen(message), 0);
+            ssize_t sent_bit = send(clientSockets[i], message, strlen(message), 0);
+            if (sent_bit < 0)
+            {
+                printf("Error sending message to %d\n", clientSockets[i]);
+            } else {
+                //just print the size of the sent message
+                printf("Sent %ld bytes\n", sent_bit);
+                printf("Message sent to %d\n", clientSockets[i]);
+            }
         }
     }
 }
+
 void *threadFunction(void *arg)
 {
     int socketFD = *(int *)arg;
@@ -83,7 +92,6 @@ void recieveAndPrintIncomingDataOnANewThread(int socketFD)
 {
     pthread_t id;
     pthread_create(&id, NULL, threadFunction, &socketFD);
-    pthread_detach(id);
 }
 
 void startAcceptingIncomingConnection(int socketFD)

@@ -19,9 +19,10 @@ struct sockaddr_in *createIPv4Address(char *ip, int port)
         inet_pton(AF_INET, ip, &address->sin_addr.s_addr);
     return address;
 }
+
 void startListeningMessagesAndPrintMessages(int socketFD)
 {
-    printf("Listening messages on socket %d\n", socketFD);
+    // printf("Listening messages on socket %d\n", socketFD);
     char buffer[1024];
     while (true)
     {
@@ -32,15 +33,9 @@ void startListeningMessagesAndPrintMessages(int socketFD)
             buffer[amountrecieved] = 0;
             printf("Received: %s\n", buffer);
         }
-        else if (amountrecieved == 0)
+        if (amountrecieved == 0)
         {
             printf("Server closed the connection\n");
-            break;
-        }
-        else
-        {
-            perror("Error receiving data");
-            printf("Connection closed\n");
             break;
         }
     }
@@ -49,15 +44,22 @@ void startListeningMessagesAndPrintMessages(int socketFD)
 
 void *startListeningMessagesThread(void *arg)
 {
-    int socketFD = *(int *)arg;
+    int socketFD = *((int *)arg);
     startListeningMessagesAndPrintMessages(socketFD);
     pthread_exit(NULL);
 }
 
 void startListeningMessagesAndPrintMessagesOnSeparateThread(int socketFD)
 {
+    int *socketFDPtr = malloc(sizeof(int));
+    if (socketFDPtr == NULL) {
+        perror("Failed to allocate memory");
+        return;
+    }
+    
+    *socketFDPtr = socketFD; 
     pthread_t id;
-    pthread_create(&id, NULL, startListeningMessagesThread, &socketFD);
+    pthread_create(&id, NULL, startListeningMessagesThread, socketFDPtr);
 }
 
 int main()
@@ -104,6 +106,5 @@ int main()
         }
     }
 
-    close(socketFD);
     return 0;
 }
