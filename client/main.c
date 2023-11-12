@@ -52,12 +52,13 @@ void *startListeningMessagesThread(void *arg)
 void startListeningMessagesAndPrintMessagesOnSeparateThread(int socketFD)
 {
     int *socketFDPtr = malloc(sizeof(int));
-    if (socketFDPtr == NULL) {
+    if (socketFDPtr == NULL)
+    {
         perror("Failed to allocate memory");
         return;
     }
-    
-    *socketFDPtr = socketFD; 
+
+    *socketFDPtr = socketFD;
     pthread_t id;
     pthread_create(&id, NULL, startListeningMessagesThread, socketFDPtr);
 }

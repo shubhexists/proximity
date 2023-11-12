@@ -47,8 +47,10 @@ void broadcastMessage(int senderSocketFD, char *message)
             if (sent_bit < 0)
             {
                 printf("Error sending message to %d\n", clientSockets[i]);
-            } else {
-                //just print the size of the sent message
+            }
+            else
+            {
+                // just print the size of the sent message
                 printf("Sent %ld bytes\n", sent_bit);
                 printf("Message sent to %d\n", clientSockets[i]);
             }
@@ -86,7 +88,6 @@ void *threadFunction(void *arg)
     broadcastMessage(socketFD, "User disconnected.\n");
     pthread_exit(NULL);
 }
-
 
 void recieveAndPrintIncomingDataOnANewThread(int socketFD)
 {
