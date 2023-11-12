@@ -1,3 +1,5 @@
+// OVERALL FUNCTIONING IN THE END OF THE FILE
+
 #include <stdbool.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -13,17 +15,23 @@
 struct AcceptedSocket
 {
     int socketFD;
+    // sockaddr_in is a struct that contains the address family, port, and IP address of the client
+    // It represents an IPv4 address, for IPv6 use sockaddr_in6 instead
     struct sockaddr_in clientAddress;
     int error;
     bool acceptedSuccessfully;
 };
 
+// A global variable to store currently accepted clients..
 int clientSockets[MAX_CLIENTS];
 
 struct AcceptedSocket *acceptIncomingConnection(int socketFD)
 {
     struct sockaddr_in clientAddress;
     int clientAddressSize = sizeof(clientAddress);
+    // accept() blocks the program until a client connects to the server
+    // Also sockaddr is a generic struct that can represent both IPv4 and IPv6 addresses
+    // and accept required the 2nd param to be sockaddr, (Hence did the type casting)
     int clientSocketFD = accept(socketFD, (struct sockaddr *)&clientAddress, &clientAddressSize);
     struct AcceptedSocket *acceptedSocket = malloc(sizeof(struct AcceptedSocket));
     acceptedSocket->socketFD = clientSocketFD;
@@ -36,6 +44,7 @@ struct AcceptedSocket *acceptIncomingConnection(int socketFD)
     return acceptedSocket;
 }
 
+// This function sends message recieced from one client to all the other clients in the connection
 void broadcastMessage(int senderSocketFD, char *message)
 {
     for (int i = 0; i < MAX_CLIENTS; i++)
@@ -43,14 +52,14 @@ void broadcastMessage(int senderSocketFD, char *message)
         if (clientSockets[i] > 0 && clientSockets[i] != senderSocketFD)
         {
             printf("Sending message to %d\n", clientSockets[i]);
+            // send_bit is basically the no of bytes of information that is transferred.
             ssize_t sent_bit = send(clientSockets[i], message, strlen(message), 0);
-            if (sent_bit < 0)
+            if (sent_bit < 0) // As number of bytes can never be less than 0,
             {
                 printf("Error sending message to %d\n", clientSockets[i]);
             }
             else
             {
-                // just print the size of the sent message
                 printf("Sent %ld bytes\n", sent_bit);
                 printf("Message sent to %d\n", clientSockets[i]);
             }

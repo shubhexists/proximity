@@ -1,3 +1,5 @@
+//OVERALL FUNCTIONING IN THE END OF THE FILE
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -22,7 +24,6 @@ struct sockaddr_in *createIPv4Address(char *ip, int port)
 
 void startListeningMessagesAndPrintMessages(int socketFD)
 {
-    // printf("Listening messages on socket %d\n", socketFD);
     char buffer[1024];
     while (true)
     {
