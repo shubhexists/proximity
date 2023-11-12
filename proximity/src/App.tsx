@@ -9,7 +9,8 @@ function App() {
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+    setGreetMsg(await invoke("greet", { name}));
+    // The greet command is defined in `src-tauri/src/main.rs`
   }
 
   return (
