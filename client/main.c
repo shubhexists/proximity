@@ -1,4 +1,4 @@
-//OVERALL FUNCTIONING IN THE END OF THE FILE
+// OVERALL FUNCTIONING IN THE END OF THE FILE
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -28,11 +28,10 @@ void startListeningMessagesAndPrintMessages(int socketFD)
     while (true)
     {
         ssize_t amountrecieved = recv(socketFD, buffer, 1024, 0);
-        // printf("Message from : %d\n", socketFD);
         if (amountrecieved > 0)
         {
             buffer[amountrecieved] = 0;
-            printf("%d > %s\n",socketFD, buffer);
+                printf("%s", buffer);
         }
         if (amountrecieved == 0)
         {
@@ -74,11 +73,11 @@ int main()
     }
 
     struct sockaddr_in *serverAddress = createIPv4Address("127.0.0.1", 8080);
-    
+
     printf("Enter your name : ");
-    char name[100];
+    char name[50];
     scanf("%s", name);
-    
+
     int result = connect(socketFD, (struct sockaddr *)serverAddress, sizeof(*serverAddress));
 
     if (result == -1)
@@ -86,21 +85,18 @@ int main()
         printf("Connection failed\n");
         return -1;
     }
-    else
-    {
-        printf("Connection successful\n");
-    }
+    printf("\033[2J\033[H");
 
+    char prefix[50] = "/name ";
+    char resultName[50 + sizeof(prefix)];
+    strcpy(resultName, prefix);
+    strcat(resultName, name);
+    printf("Welcome %s! It's all your's now :)\n", name);
+
+    send(socketFD, resultName, strlen(resultName), 0);
     char *line = NULL;
     size_t len = 0;
-    // Append "/name" in the beginning of the name provided by the user
-    // so that the server can identify the name of the client
-    char *nameWithPrefix = malloc(strlen(name) + 6);
-    strcpy(nameWithPrefix, "/name ");
-    strcat(nameWithPrefix, name);
-    printf("Sending name : %s\n", name);
-    send(socketFD, nameWithPrefix, strlen(nameWithPrefix), 0);
-    
+
     startListeningMessagesAndPrintMessagesOnSeparateThread(socketFD);
 
     while (true)
