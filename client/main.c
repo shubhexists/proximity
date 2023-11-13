@@ -28,11 +28,11 @@ void startListeningMessagesAndPrintMessages(int socketFD)
     while (true)
     {
         ssize_t amountrecieved = recv(socketFD, buffer, 1024, 0);
-        printf("Message from : %d\n", socketFD);
+        // printf("Message from : %d\n", socketFD);
         if (amountrecieved > 0)
         {
             buffer[amountrecieved] = 0;
-            printf("Received: %s\n", buffer);
+            printf("%d > %s\n",socketFD, buffer);
         }
         if (amountrecieved == 0)
         {
@@ -74,7 +74,11 @@ int main()
     }
 
     struct sockaddr_in *serverAddress = createIPv4Address("127.0.0.1", 8080);
-
+    
+    printf("Enter your name : ");
+    char name[100];
+    scanf("%s", name);
+    
     int result = connect(socketFD, (struct sockaddr *)serverAddress, sizeof(*serverAddress));
 
     if (result == -1)
@@ -89,7 +93,14 @@ int main()
 
     char *line = NULL;
     size_t len = 0;
-
+    // Append "/name" in the beginning of the name provided by the user
+    // so that the server can identify the name of the client
+    char *nameWithPrefix = malloc(strlen(name) + 6);
+    strcpy(nameWithPrefix, "/name ");
+    strcat(nameWithPrefix, name);
+    printf("Sending name : %s\n", name);
+    send(socketFD, nameWithPrefix, strlen(nameWithPrefix), 0);
+    
     startListeningMessagesAndPrintMessagesOnSeparateThread(socketFD);
 
     while (true)

@@ -15,6 +15,8 @@
 struct AcceptedSocket
 {
     int socketFD;
+    // User will be asked to enter his name, and it will be stored here
+    char name[100];
     // sockaddr_in is a struct that contains the address family, port, and IP address of the client
     // It represents an IPv4 address, for IPv6 use sockaddr_in6 instead
     struct sockaddr_in clientAddress;
