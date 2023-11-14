@@ -15,9 +15,7 @@ However, if you make changes to the source code, you have to recompile the binar
 Haha! Main reason was that is was cool, isn't it? Building a websocket in C 🤙🤓. 
 
 # Current Shortages
-1) Even though I completed most part of the Socket connection, the current code unfortunately isn't a complete web socket. It has capabilities to have client server communication but server can't relay back the information that it recieves to other 
-clients in the network. Basically think of it as a Client Server network architecture, just that clients can't communicate :/
 2) I have currently programmed just for the text data, would have to add features on how to transfer the binary data.
 
 # Why another chat app you might ask?
-Also, I am jobless, so nothing's stopping me xD
+I love being inside terminal, couldn't find any good alternative so why not :)
