@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+//Max clients that can be connected to the server
 #define MAX_CLIENTS 10
 
 struct AcceptedSocket
@@ -111,8 +112,10 @@ void *threadFunction(void *arg)
             }
             else
             {
+                // If the message is not a name change request, then we just print the message
                 printf("%s\n", buffer);
             }
+            // Send the message to all the other clients in the connection
             broadcastMessage(acceptedSocket, buffer);
         }
         else if (amountrecieved == 0)
@@ -164,8 +167,9 @@ void startAcceptingIncomingConnection(int socketFD)
 
 int main()
 {
-    // AF_INET -
-    // SOCK_STREAM -
+    // AF_INET - It refers to the IPV4 address, AF_INET6 refers to IPV6 address 
+    // SOCK_STREAM - It refers to the TCP connection, SOCK_DGRAM refers to UDP connection
+    // 0 - It refers to the protocol, 0 means that the protocol is chosen automatically
     int socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFD == -1)
     {
@@ -173,10 +177,12 @@ int main()
         return -1;
     }
 
-    // sockaddr_in - It refers to the IPV4 address
+    // sockaddr_in is a struct that contains the address family, port, and IP address of the server
+    // It represents an IPv4 address, for IPv6 use sockaddr_in6 instead
     struct sockaddr_in *serverAddress = malloc(sizeof(struct sockaddr_in));
     serverAddress->sin_family = AF_INET;
-    // htons() basically -
+    // htons() basically converts the port number from host byte order to network byte order
+    // This is required because different systems have different byte orders
     serverAddress->sin_port = htons(8080);
     // INADDR_ANY means that this server can accept inputs from any IP Address
     serverAddress->sin_addr.s_addr = INADDR_ANY;
@@ -203,3 +209,14 @@ int main()
     shutdown(socketFD, SHUT_RDWR);
     return 0;
 }
+
+/*
+ Overall Function of the server - 
+    1. Create a socket
+    2. Bind the socket to a port
+    3. Listen to the socket
+    4. Accept the incoming connection
+    5. Create a new thread for the every connection that is accepted
+    6. Recieve and print the incoming data on the new thread
+    7. Repeat from step 4
+*/

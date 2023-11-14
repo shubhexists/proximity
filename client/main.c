@@ -15,9 +15,9 @@ struct sockaddr_in *createIPv4Address(char *ip, int port)
 {
     // This line allocates the memory for an instance of sockaddr_in
     struct sockaddr_in *address = malloc(sizeof(struct sockaddr_in));
-    // AF_INET -
+    // AF_INET - It refers to the IPV4 address, AF_INET6 refers to IPV6 address
     address->sin_family = AF_INET;
-    // hton()
+    // hton() - It converts the host byte order to network byte order
     address->sin_port = htons(port);
     if (strlen(ip) == 0)
     {
@@ -26,7 +26,8 @@ struct sockaddr_in *createIPv4Address(char *ip, int port)
     }
     else
     {
-        //inet_pton 
+        //inet_pton basically converts the IP address from text to binary form
+        // It returns 1 if the conversion is successful, 0 if the input is invalid, and -1 if some error occurs
         inet_pton(AF_INET, ip, &address->sin_addr.s_addr);
     }
     return address;
@@ -42,7 +43,7 @@ void startListeningMessagesAndPrintMessages(int socketFD)
         ssize_t amountrecieved = recv(socketFD, buffer, 1024, 0);
         if (amountrecieved > 0)
         {   
-            // This line 
+            // This line "buffer[aountrecieved] = 0" basically adds a null character at the end of the string
             buffer[amountrecieved] = 0;
             printf("%s", buffer);
         }
@@ -62,7 +63,7 @@ void startListeningMessagesAndPrintMessages(int socketFD)
 // As the pthread function requires the function to take up void arguments and have a return type of void..
 void *startListeningMessagesThread(void *arg)
 {
-    //
+    // This line basically converts the void pointer to int pointer as we know that the argument is an int pointer
     int socketFD = *((int *)arg);
     startListeningMessagesAndPrintMessages(socketFD);
     //End the thread
@@ -91,9 +92,9 @@ void startListeningMessagesAndPrintMessagesOnSeparateThread(int socketFD)
 
 int main()
 {
-    //AF_INET - 
-    //SOCK_STREAM -
-    // 0 - 
+    // AF_INET - It refers to the IPV4 address, AF_INET6 refers to IPV6 address 
+    // SOCK_STREAM - It refers to the TCP connection, SOCK_DGRAM refers to UDP connection
+    // 0 - It refers to the protocol, 0 means that the protocol is chosen automatically
     int socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFD == -1)
     {
@@ -155,3 +156,14 @@ int main()
     }
     return 0;
 }
+
+/*
+Overall functioning of the client side:
+1. Create a socket
+2. Connect to the server
+3. Send the name of the user
+4. Start listening to the messages sent by the server on a seperate thread and then print it.
+5. Start listening to the messages typed by the user
+6. Send the messages typed by the user to the server
+7. If the user types exit, then end the connection
+*/
