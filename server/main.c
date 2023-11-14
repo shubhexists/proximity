@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+//Max clients that can be connected to the server
 #define MAX_CLIENTS 10
 
 struct AcceptedSocket
@@ -23,13 +24,6 @@ struct AcceptedSocket
     int error;
     bool acceptedSuccessfully;
 };
-
-// const char* getRandomColor() {
-//     const char* colors[] = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
-//     int numColors = sizeof(colors) / sizeof(colors[0]);
-//     int randomIndex = rand() % numColors;
-//     return colors[randomIndex];
-// }
 
 // A global variable to store currently accepted clients..
 struct AcceptedSocket clientSockets[MAX_CLIENTS];
@@ -63,7 +57,8 @@ void broadcastMessage(struct AcceptedSocket *acceptedSocket, char *message)
             printf("Sending message to %d\n", clientSockets[i].socketFD);
             // Append the name of the user to the message like "/Shubham: Hello World!"
             char messageWithUserName[1024];
-            // strcpy(messageWithUserName, "/");
+            // The following line is to add the color to the username
+            // This is called ANSI escape code (basically a string that tells the terminal to change the color)
             strcpy(messageWithUserName, "\033[1;31m");
             strcat(messageWithUserName, acceptedSocket->name);
             strcat(messageWithUserName, " : ");
@@ -84,6 +79,9 @@ void broadcastMessage(struct AcceptedSocket *acceptedSocket, char *message)
     }
 }
 
+// This function is called when a new thread is created
+// The pthread method requires a function that returns void pointer and takes void pointer as an argument
+// None of the other ways worked
 void *threadFunction(void *arg)
 {
     // arg is a void pointer, so we need to typecast it to int pointer
@@ -105,19 +103,25 @@ void *threadFunction(void *arg)
                 // We are copying the name from the buffer to the name field of the acceptedSocket
                 // We are copying from the 6th character, because the first 5 characters are /name
                 strcpy(acceptedSocket->name, buffer + 6);
+                // Set name to the name entered by the user
                 printf("Name set to %s\n", acceptedSocket->name);
+                // TODO - Randomize this entry message just like discord
                 broadcastMessage(acceptedSocket, "hopped in!\n");
                 printf("%s\n", buffer + 6);
                 continue;
             }
             else
             {
+                // If the message is not a name change request, then we just print the message
                 printf("%s\n", buffer);
             }
+            // Send the message to all the other clients in the connection
             broadcastMessage(acceptedSocket, buffer);
         }
         else if (amountrecieved == 0)
         {
+            // If the amount recieved is 0, then the client has closed the connection
+            // TODO - Remove this user from the clientSockets array
             printf("Client closed the connection\n");
             break;
         }
@@ -128,17 +132,21 @@ void *threadFunction(void *arg)
             break;
         }
     }
+    // Closing the socket connection
     close(socketFD);
     broadcastMessage(acceptedSocket, "User disconnected.\n");
+    // Closing the thread
     pthread_exit(NULL);
 }
 
+// Just a function to add a new thread..
 void recieveAndPrintIncomingDataOnANewThread(struct AcceptedSocket *acceptedSocket)
 {
     pthread_t id;
     pthread_create(&id, NULL, threadFunction, acceptedSocket);
 }
 
+// This functions makes an object of struct AcceptedSocket and acceptsTheConnection
 void startAcceptingIncomingConnection(int socketFD)
 {
     while (true)
@@ -159,6 +167,9 @@ void startAcceptingIncomingConnection(int socketFD)
 
 int main()
 {
+    // AF_INET - It refers to the IPV4 address, AF_INET6 refers to IPV6 address 
+    // SOCK_STREAM - It refers to the TCP connection, SOCK_DGRAM refers to UDP connection
+    // 0 - It refers to the protocol, 0 means that the protocol is chosen automatically
     int socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFD == -1)
     {
@@ -166,11 +177,19 @@ int main()
         return -1;
     }
 
+    // sockaddr_in is a struct that contains the address family, port, and IP address of the server
+    // It represents an IPv4 address, for IPv6 use sockaddr_in6 instead
     struct sockaddr_in *serverAddress = malloc(sizeof(struct sockaddr_in));
     serverAddress->sin_family = AF_INET;
+    // htons() basically converts the port number from host byte order to network byte order
+    // This is required because different systems have different byte orders
     serverAddress->sin_port = htons(8080);
+    // INADDR_ANY means that this server can accept inputs from any IP Address
     serverAddress->sin_addr.s_addr = INADDR_ANY;
 
+    // Bind function binds the code to the port on our system we asked
+    // It fails if we provided a wrong port or an already used port
+    // It's 2nd parameter required it to be of type sockaddr and not sockaddr_in, so I just typecasted it.
     int result = bind(socketFD, (struct sockaddr *)serverAddress, sizeof(*serverAddress));
     if (result == 0)
     {
@@ -182,9 +201,22 @@ int main()
         return -1;
     }
 
+    // 10 here is the maximum number of entries that this socket would listen to.....
     int listenResult = listen(socketFD, 10);
 
     startAcceptingIncomingConnection(socketFD);
+    // This is called when the server is shut down and we have to free up the port we have occupied
     shutdown(socketFD, SHUT_RDWR);
     return 0;
 }
+
+/*
+ Overall Function of the server - 
+    1. Create a socket
+    2. Bind the socket to a port
+    3. Listen to the socket
+    4. Accept the incoming connection
+    5. Create a new thread for the every connection that is accepted
+    6. Recieve and print the incoming data on the new thread
+    7. Repeat from step 4
+*/
