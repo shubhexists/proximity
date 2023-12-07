@@ -21,9 +21,35 @@ struct AcceptedSocket
     // sockaddr_in is a struct that contains the address family, port, and IP address of the client
     // It represents an IPv4 address, for IPv6 use sockaddr_in6 instead
     struct sockaddr_in clientAddress;
+    // This is the color that will be used to display the name of the user
+    char colour[30];
     int error;
     bool acceptedSuccessfully;
 };
+
+char *random_colour()
+{
+    int random_number = rand() % 7;
+    switch (random_number)
+    {
+    case 0:
+        return "\033[0;31m";
+    case 1:
+        return "\033[0;32m";
+    case 2:
+        return "\033[0;33m";
+    case 3:
+        return "\033[0;34m";
+    case 4:
+        return "\033[0;35m";
+    case 5:
+        return "\033[0;36m";
+    case 6:
+        return "\033[0;37m";
+    default:
+        return "\033[0m";
+    }
+}
 
 // A global variable to store currently accepted clients..
 struct AcceptedSocket clientSockets[MAX_CLIENTS];
@@ -38,6 +64,7 @@ struct AcceptedSocket *acceptIncomingConnection(int socketFD)
     int clientSocketFD = accept(socketFD, (struct sockaddr *)&clientAddress, &clientAddressSize);
     struct AcceptedSocket *acceptedSocket = malloc(sizeof(struct AcceptedSocket));
     acceptedSocket->socketFD = clientSocketFD;
+    strcpy(acceptedSocket->colour, random_colour());
     acceptedSocket->clientAddress = clientAddress;
     acceptedSocket->acceptedSuccessfully = clientSocketFD > 0;
     if (!acceptedSocket->acceptedSuccessfully)
@@ -59,7 +86,7 @@ void broadcastMessage(struct AcceptedSocket *acceptedSocket, char *message)
             char messageWithUserName[1024];
             // The following line is to add the color to the username
             // This is called ANSI escape code (basically a string that tells the terminal to change the color)
-            strcpy(messageWithUserName, "\033[1;31m");
+            strcpy(messageWithUserName, acceptedSocket->colour);
             strcat(messageWithUserName, acceptedSocket->name);
             strcat(messageWithUserName, " : ");
             strcat(messageWithUserName, "\033[0m");
