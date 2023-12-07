@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-//Max clients that can be connected to the server
+// Max clients that can be connected to the server
 #define MAX_CLIENTS 10
 
 struct AcceptedSocket
@@ -54,7 +54,7 @@ void broadcastMessage(struct AcceptedSocket *acceptedSocket, char *message)
     {
         if (clientSockets[i].socketFD > 0 && clientSockets[i].socketFD != acceptedSocket->socketFD)
         {
-            printf("Sending message to %d\n", clientSockets[i].socketFD);
+            // printf("Sending message to %d\n", clientSockets[i].socketFD);
             // Append the name of the user to the message like "/Shubham: Hello World!"
             char messageWithUserName[1024];
             // The following line is to add the color to the username
@@ -72,8 +72,8 @@ void broadcastMessage(struct AcceptedSocket *acceptedSocket, char *message)
             }
             else
             {
-                printf("Sent %ld bytes\n", sent_bit);
-                printf("Message sent to %d\n", clientSockets[i].socketFD);
+                printf("Sent %ld bytes\n\n", sent_bit);
+                // printf("Message sent to %d\n", clientSockets[i].socketFD);
             }
         }
     }
@@ -104,16 +104,16 @@ void *threadFunction(void *arg)
                 // We are copying from the 6th character, because the first 5 characters are /name
                 strcpy(acceptedSocket->name, buffer + 6);
                 // Set name to the name entered by the user
-                printf("Name set to %s\n", acceptedSocket->name);
+                printf("%s Joined!\n", acceptedSocket->name);
                 // TODO - Randomize this entry message just like discord
                 broadcastMessage(acceptedSocket, "hopped in!\n");
-                printf("%s\n", buffer + 6);
+                // printf("%s\n", buffer + 6);
                 continue;
             }
             else
             {
                 // If the message is not a name change request, then we just print the message
-                printf("%s\n", buffer);
+                printf("%s", buffer);
             }
             // Send the message to all the other clients in the connection
             broadcastMessage(acceptedSocket, buffer);
@@ -157,7 +157,7 @@ void startAcceptingIncomingConnection(int socketFD)
             if (clientSockets[i].socketFD == 0)
             {
                 clientSockets[i] = *clientSocket;
-                printf("Accepted connection from %d\n", clientSocket->socketFD);
+                // printf("Accepted connection from %d\n", clientSocket->socketFD);
                 recieveAndPrintIncomingDataOnANewThread(clientSocket);
                 break;
             }
@@ -167,7 +167,7 @@ void startAcceptingIncomingConnection(int socketFD)
 
 int main()
 {
-    // AF_INET - It refers to the IPV4 address, AF_INET6 refers to IPV6 address 
+    // AF_INET - It refers to the IPV4 address, AF_INET6 refers to IPV6 address
     // SOCK_STREAM - It refers to the TCP connection, SOCK_DGRAM refers to UDP connection
     // 0 - It refers to the protocol, 0 means that the protocol is chosen automatically
     int socketFD = socket(AF_INET, SOCK_STREAM, 0);
@@ -193,11 +193,11 @@ int main()
     int result = bind(socketFD, (struct sockaddr *)serverAddress, sizeof(*serverAddress));
     if (result == 0)
     {
-        printf("Bind successful\n");
+        // printf("Bind successful\n");
     }
     else
     {
-        printf("Bind failed\n");
+        // printf("Bind failed\n");
         return -1;
     }
 
@@ -211,7 +211,7 @@ int main()
 }
 
 /*
- Overall Function of the server - 
+ Overall Function of the server -
     1. Create a socket
     2. Bind the socket to a port
     3. Listen to the socket
